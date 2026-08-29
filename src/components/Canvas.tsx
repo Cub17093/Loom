@@ -1,6 +1,7 @@
+import { getAccessToken } from "../auth";
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../AppContext';
-import { CheckSquare, Type, MoreVertical, Import, Cloud, Plus, ChevronUp, ChevronDown, Calendar, Database, FileText } from 'lucide-react';
+import { CheckSquare, Type, MoreVertical, Import, Cloud, Plus, ChevronUp, ChevronDown, Calendar, Database, FileText, Zap, Bot } from 'lucide-react';
 import { workspaceApi } from '../workspace';
 
 export function Canvas() {
@@ -73,7 +74,7 @@ export function Canvas() {
   };
 
   const handleImport = async (source: 'drive' | 'gmail' | 'calendar' | 'tasks' | 'docs') => {
-    if (!localStorage.getItem('google_access_token')) {
+    if (!await getAccessToken()) {
       alert('Please sign in with Google in the sidebar before importing data.');
       return;
     }
@@ -171,17 +172,29 @@ export function Canvas() {
               {block.type === 'drive' && <div className="mt-1 p-1 bg-[#1A1A1C] rounded border border-[#2D2D30]"><Cloud className="w-4 h-4 text-[#A1A1AA]" /></div>}
 
               <div className="flex-1 relative flex flex-col">
-                <input
-                  type="text"
-                  value={block.content}
-                  onChange={(e) => handleBlockChange(block.id, e.target.value)}
-                  placeholder={block.type === 'paragraph' ? "Type '/' for commands" : ''}
-                  className={"w-full bg-transparent border-none focus:outline-none focus:bg-[#1A1A1C] rounded p-1 transition-colors " + (
-                    block.type === 'task' 
-                      ? (block.properties?.status === 'done' ? 'line-through text-[#52525B]' : 'text-white font-medium text-sm')
-                      : 'text-lg leading-relaxed text-[#A1A1AA] font-serif placeholder:text-[#3F3F46] placeholder:font-sans placeholder:text-sm'
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={block.content}
+                    onChange={(e) => handleBlockChange(block.id, e.target.value)}
+                    placeholder={block.type === 'paragraph' ? "Type '/' for commands" : ''}
+                    className={"w-full bg-transparent border-none focus:outline-none focus:bg-[#1A1A1C] rounded p-1 transition-colors " + (
+                      block.type === 'task' 
+                        ? (block.properties?.status === 'done' ? 'line-through text-[#52525B]' : 'text-white font-medium text-sm')
+                        : 'text-lg leading-relaxed text-[#A1A1AA] font-serif placeholder:text-[#3F3F46] placeholder:font-sans placeholder:text-sm'
+                    )}
+                  />
+                  {block.type === 'task' && block.properties?.source === 'pipeline' && (
+                    <div title="Created by automation" className="flex items-center justify-center p-1 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 shrink-0">
+                      <Zap className="w-3 h-3" />
+                    </div>
                   )}
-                />
+                  {block.type === 'task' && block.properties?.source === 'ai' && (
+                    <div title="Created by AI assistant" className="flex items-center justify-center p-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
+                      <Bot className="w-3 h-3" />
+                    </div>
+                  )}
+                </div>
                 
                 {block.type === 'event' && block.properties?.date && (
                    <span className="text-xs text-[#52525B] ml-1 mt-1 font-sans">
@@ -189,8 +202,70 @@ export function Canvas() {
                    </span>
                 )}
                 {block.type === 'database-view' && (
-                   <div className="mt-2 w-full h-32 border border-dashed border-[#2D2D30] rounded-lg flex items-center justify-center text-[#52525B] font-sans text-sm bg-[#0D0D0E]">
-                     Table Database View Placeholder
+                   <div className="mt-4 w-full border border-[#2D2D30] rounded-xl overflow-hidden bg-[#0A0A0B] flex flex-col font-sans">
+                     <div className="flex border-b border-[#2D2D30] bg-[#111113]">
+                       <button className="px-4 py-2 text-sm text-white border-b-2 border-blue-500 font-medium">Kanban</button>
+                       <button className="px-4 py-2 text-sm text-[#71717A] hover:text-[#A1A1AA]">Table</button>
+                       <button className="px-4 py-2 text-sm text-[#71717A] hover:text-[#A1A1AA]">Timeline</button>
+                     </div>
+                     <div className="p-4 flex gap-4 overflow-x-auto min-h-[200px]">
+                       {/* Column 1 */}
+                       <div className="flex-1 min-w-[250px] bg-[#111113] p-3 rounded-lg border border-[#1F1F21]">
+                         <div className="flex justify-between items-center mb-3">
+                           <h4 className="text-xs font-bold text-[#A1A1AA]">TO DO <span className="text-[#52525B] ml-1">3</span></h4>
+                           <Plus className="w-3 h-3 text-[#52525B]" />
+                         </div>
+                         <div className="space-y-2">
+                           <div className="bg-[#1A1A1C] border border-[#2D2D30] p-3 rounded shadow-sm">
+                             <div className="text-sm text-white mb-2">Finalize Q4 AI Infrastructure Specs</div>
+                             <div className="flex gap-2">
+                               <span className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 text-[10px] border border-red-500/20">P1_CRITICAL</span>
+                               <span className="px-1.5 py-0.5 rounded bg-[#2D2D30] text-[#A1A1AA] text-[10px]">90m</span>
+                             </div>
+                           </div>
+                           <div className="bg-[#1A1A1C] border border-[#2D2D30] p-3 rounded shadow-sm">
+                             <div className="text-sm text-white mb-2">Review UI Wireframes</div>
+                             <div className="flex gap-2">
+                               <span className="px-1.5 py-0.5 rounded bg-[#2D2D30] text-[#A1A1AA] text-[10px]">30m</span>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Column 2 */}
+                       <div className="flex-1 min-w-[250px] bg-[#111113] p-3 rounded-lg border border-[#1F1F21]">
+                         <div className="flex justify-between items-center mb-3">
+                           <h4 className="text-xs font-bold text-blue-400">IN PROGRESS <span className="text-[#52525B] ml-1">1</span></h4>
+                           <Plus className="w-3 h-3 text-[#52525B]" />
+                         </div>
+                         <div className="space-y-2">
+                           <div className="bg-[#1A1A1C] border border-[#2D2D30] p-3 rounded shadow-sm">
+                             <div className="text-sm text-white mb-2">API Middleware Implementation</div>
+                             <div className="flex gap-2">
+                               <span className="px-1.5 py-0.5 rounded bg-yellow-500/10 text-yellow-400 text-[10px] border border-yellow-500/20">P2_HIGH</span>
+                               <span className="px-1.5 py-0.5 rounded bg-[#2D2D30] text-[#A1A1AA] text-[10px]">120m</span>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Column 3 */}
+                       <div className="flex-1 min-w-[250px] bg-[#111113] p-3 rounded-lg border border-[#1F1F21]">
+                         <div className="flex justify-between items-center mb-3">
+                           <h4 className="text-xs font-bold text-purple-400">SCHEDULED (CHRONOS) <span className="text-[#52525B] ml-1">2</span></h4>
+                           <Plus className="w-3 h-3 text-[#52525B]" />
+                         </div>
+                         <div className="space-y-2">
+                           <div className="bg-[#1A1A1C] border border-purple-500/30 p-3 rounded shadow-sm">
+                             <div className="text-sm text-white mb-2">Chronos Engine Test</div>
+                             <div className="flex items-center gap-1.5 text-xs text-purple-400 mt-2">
+                               <Calendar className="w-3 h-3" />
+                               Today, 09:30 AM
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
                    </div>
                 )}
                 {slashMenuId === block.id && (

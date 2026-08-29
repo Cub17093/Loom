@@ -2,6 +2,42 @@ import { getAccessToken } from './auth';
 import { api } from './api';
 
 export const workspaceApi = {
+  createCalendarEvent: async (title: string, startISO: string, endISO: string) => {
+    const token = await getAccessToken();
+    if (!token) return null;
+    const res = await fetch('/api/workspace/calendar/event', {
+      method: 'POST',
+      headers: { 
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title, startISO, endISO })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert('Calendar error: ' + (data.error || 'Failed to create event.'));
+      return null;
+    }
+    return data;
+  },
+  updateCalendarEvent: async (eventId: string, title: string, startISO: string, endISO: string) => {
+    const token = await getAccessToken();
+    if (!token) return null;
+    const res = await fetch('/api/workspace/calendar/event/' + eventId, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title, startISO, endISO })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert('Calendar error: ' + (data.error || 'Failed to update event.'));
+      return null;
+    }
+    return data;
+  },
   importDriveFiles: async (parentId: string) => {
     const token = await getAccessToken();
     if (!token) return [];

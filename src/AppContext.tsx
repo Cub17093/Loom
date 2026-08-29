@@ -14,6 +14,10 @@ interface AppContextType {
   setActivePageId: (id: string | null) => void;
   mainView: 'workspace' | 'calendar' | 'flow';
   setMainView: (view: 'workspace' | 'calendar' | 'flow') => void;
+  isLeftRailOpen: boolean;
+  setIsLeftRailOpen: (open: boolean) => void;
+  isAIPanelOpen: boolean;
+  setIsAIPanelOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -23,6 +27,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [activeSpaceId, setActiveSpaceId] = useState<string | null>(() => localStorage.getItem('loom_active_space'));
   const [activePageId, setActivePageId] = useState<string | null>(() => localStorage.getItem('loom_active_page'));
   const [mainView, setMainView] = useState<'workspace' | 'calendar' | 'flow'>('workspace');
+  const [isLeftRailOpen, setIsLeftRailOpen] = useState(true);
+  const [isAIPanelOpen, setIsAIPanelOpen] = useState(true);
   const debounceMap = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
@@ -82,6 +88,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setActivePageId,
         mainView,
         setMainView,
+        isLeftRailOpen,
+        setIsLeftRailOpen,
+        isAIPanelOpen,
+        setIsAIPanelOpen,
       }}
     >
       {children}

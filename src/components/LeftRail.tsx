@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../AppContext';
-import { Folder, FileText, Plus, Trash2, Pencil, Calendar, Workflow, LayoutGrid, ChevronRight, ChevronDown } from 'lucide-react';
+import { Folder, FileText, Plus, Trash2, Pencil, Calendar, Workflow, LayoutGrid, ChevronRight, ChevronDown, PanelLeftClose } from 'lucide-react';
 import { googleSignIn, initAuth, logout } from '../auth';
 import { Block } from '../types';
 
 export function LeftRail() {
-  const { blocks, activeSpaceId, setActiveSpaceId, activePageId, setActivePageId, createBlock, updateBlock, deleteBlock, mainView, setMainView } = useAppContext();
+  const { blocks, activeSpaceId, setActiveSpaceId, activePageId, setActivePageId, createBlock, updateBlock, deleteBlock, mainView, setMainView, setIsLeftRailOpen } = useAppContext();
   const [user, setUser] = React.useState<any>(null);
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -75,6 +75,8 @@ export function LeftRail() {
     } catch (e: any) {
       if (e?.code === 'auth/popup-closed-by-user') {
         console.log('Sign in popup closed by user.');
+      } else if (e?.code === 'auth/cancelled-popup-request') {
+        console.log('Sign in popup request was cancelled (likely due to multiple clicks).');
       } else {
         console.error('Sign in error:', e);
       }
@@ -146,13 +148,16 @@ export function LeftRail() {
 
   return (
     <div className="w-64 bg-[#0D0D0E] border-r border-[#1F1F21] flex flex-col h-full overflow-y-auto">
-      <div className="p-6 border-b border-[#1F1F21]">
-        <h1 className="font-semibold text-white tracking-tight text-lg flex items-center gap-2">
-          <div className="w-6 h-6 bg-[#E2E2E2] rounded-sm flex items-center justify-center">
-            <div className="w-3 h-3 border-2 border-[#0A0A0B] rotate-45"></div>
+      <div className="p-6 border-b border-[#1F1F21] flex justify-between items-center">
+        <h1 className="font-semibold text-white tracking-tight text-lg flex items-center gap-3">
+          <div className="w-6 h-6 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-sm flex items-center justify-center">
+            <div className="w-2 h-2 bg-[#0A0A0B] rounded-full"></div>
           </div>
-          LOOM
+          SYNAPSE
         </h1>
+        <button onClick={() => setIsLeftRailOpen(false)} className="p-1 text-[#52525B] hover:text-white transition-colors" title="Close sidebar">
+          <PanelLeftClose className="w-4 h-4" />
+        </button>
       </div>
       
       <div className="px-4 py-4 space-y-1 border-b border-[#1F1F21]">
